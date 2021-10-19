@@ -17,18 +17,36 @@ printed in order.
 
 public class SynchedSplitLoops {
 	static int counter = 0;
+	int t=0;
+	static Object o=new Object();
 	
 	public static void main(String[] args) {
 		Thread t1 = new Thread(() -> {
+			synchronized (o) {
 			for(int i = 0; i < 100000; i++) {
+				try {
+					o.wait();
+				} catch (InterruptedException e) {
+					// TODO: handle exception
+					e.printStackTrace();
+				}
 				counter++;
+				o.notify();
+			}
 			}
 		});
 		
 		Thread t2 = new Thread(() -> {
-			for(int i = 0; i < 100000; i++) {
-				System.out.println(counter);
-			}
+			synchronized (o) {
+				for(int i = 0; i < 100000; i++) {
+					System.out.println(counter);
+					o.notify();
+					try {
+						o.wait();
+					} catch (InterruptedException e) {
+						// TODO: handle exception
+						e.printStackTrace();
+					}}}
 		});
 		
 		t1.start();
